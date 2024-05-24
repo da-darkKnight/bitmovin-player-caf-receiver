@@ -14,10 +14,34 @@ export default class CAFReceiver {
   }
 
   public init() {
-    // cast.framework.CastReceiverContext.getInstance().setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
+    cast.framework.CastReceiverContext.getInstance().setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
+    let castReceiverOptions = new cast.framework.CastReceiverOptions();
+    castReceiverOptions.useShakaForHls = true;
+      this.attachEvents();
+    this.setPlaybackConfig();
+    this.context.start(castReceiverOptions);
 
-    this.attachEvents();
-    this.context.start();
+  }
+
+    // This is an example on how to set the ShakaConfig settings
+  // See https://shaka-player-demo.appspot.com/docs/api/shaka.extern.html#.PlayerConfiguration 
+  // For showcasing is hardcoded on the receiver side
+  // Ideally the ShakaConfig or PlaybackConfig should come from the sender side for example as part of the `customData`
+  private setPlaybackConfig() {
+    const shakaConfig = {
+      restrictions: {
+        maxHeight: 300,
+      },
+      streaming:{
+        gapDetectionThreshold: 0.0001,
+        gapJumpTimerTime:2
+      }
+    }
+
+    const playbackConfig = new cast.framework.PlaybackConfig();
+    (playbackConfig as any).shakaConfig = shakaConfig;
+
+    this.player.setPlaybackConfig(playbackConfig);
   }
 
   private attachEvents() {
@@ -74,7 +98,7 @@ export default class CAFReceiver {
     playerManager.setPlaybackConfig(playbackConfig);
   }
 
-  private readonly onCustomMessage = (message: cast.framework.system.Event) => {
+  private readonly onCustomMessage = (message: any) => {
     console.log('Received custom channel message', message);
   };
 }
